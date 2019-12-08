@@ -1,9 +1,0 @@
-C:\Prog\FunMain\FunMain\bin\Debug\FunMain.exe.config
-C:\Prog\FunMain\FunMain\bin\Debug\FunMain.exe
-C:\Prog\FunMain\FunMain\bin\Debug\FunMain.pdb
-C:\Prog\FunMain\FunMain\obj\Debug\FunMain.csprojAssemblyReference.cache
-C:\Prog\FunMain\FunMain\obj\Debug\FunMain.Form1.resources
-C:\Prog\FunMain\FunMain\obj\Debug\FunMain.Properties.Resources.resources
-C:\Prog\FunMain\FunMain\obj\Debug\FunMain.csproj.GenerateResource.cache
-C:\Prog\FunMain\FunMain\obj\Debug\FunMain.exe
-C:\Prog\FunMain\FunMain\obj\Debug\FunMain.pdb
