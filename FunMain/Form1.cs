@@ -154,8 +154,8 @@ namespace FunMain
                     else
                     {
                         arduinoPort.BaseStream.WriteByte(2);
-
                     }
+                    detectorMode = DetectorMode.Pause;
                 }
             }
             else
