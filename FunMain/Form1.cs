@@ -15,11 +15,21 @@ namespace FunMain
 {
     public partial class Form1 : Form
     {
+        const int DetectedDistance = 130;
+        const int DistanceGrantLow = 40;
+        const int DistanceGrantHigh = 50;
+
         // Create the serial port with basic settings
-        private SerialPort port = new SerialPort("COM8",
-          115200, Parity.None, 8, StopBits.One);
-        private SerialPort arduinoPort = new SerialPort("COM10",
-          9600, Parity.None, 8, StopBits.One);
+        private SerialPort detectorPort = new SerialPort("COM8", 115200, Parity.None, 8, StopBits.One);
+        private SerialPort arduinoPort = new SerialPort("COM10",   9600, Parity.None, 8, StopBits.One);
+        private Random random = new Random();
+
+        enum DetectorMode
+        {
+            Waiting,
+            Detecting,
+            Pause
+        }
 
         int byteNumber;
         int distanceLow;
@@ -27,8 +37,13 @@ namespace FunMain
         int strengthLow;
         int strengthHigh;
         int quality;
-        BinaryReader br;
+        //BinaryReader br;
 
+        DetectorMode detectorMode = DetectorMode.Waiting;
+        //bool detectingNow = false;
+        DateTime detectionTime = new DateTime(0);
+        int lowestDistance;
+        int previousDistance;
         public Form1()
         {
             InitializeComponent();
@@ -40,14 +55,13 @@ namespace FunMain
 
             // Attach a method to be called when there
             // is data waiting in the port's buffer
-            port.DataReceived += new
-              SerialDataReceivedEventHandler(port_DataReceived);
+            detectorPort.DataReceived += new SerialDataReceivedEventHandler(port_DataReceived);
 
             // Begin communications
             int wbs = arduinoPort.WriteBufferSize;
             arduinoPort.Open();
-            port.Open();
-            br = new BinaryReader(port.BaseStream);
+            detectorPort.Open();
+            //br = new BinaryReader(port.BaseStream);
 
         }
 
@@ -55,17 +69,17 @@ namespace FunMain
 
         private void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            while (port.BytesToRead > 0)
+            while (detectorPort.BytesToRead > 0)
             {
                 if (byteNumber == 0)
                 {
-                    int a = port.ReadByte();
+                    int a = detectorPort.ReadByte();
                     if (a == 89)
                         byteNumber++;
                 }
                 if (byteNumber == 1)
                 {
-                    int a = port.ReadByte();
+                    int a = detectorPort.ReadByte();
                     if (a == 89)
                         byteNumber++;
                     else
@@ -73,89 +87,97 @@ namespace FunMain
                 }
                 if (byteNumber == 2)
                 {
-                    distanceLow = port.ReadByte();
+                    distanceLow = detectorPort.ReadByte();
                     byteNumber++;
                 }
                 if (byteNumber == 3)
                 {
-                    distanceHigh = port.ReadByte();
+                    distanceHigh = detectorPort.ReadByte();
                     byteNumber++;
                 }
                 if (byteNumber == 4)
                 {
-                    strengthLow = port.ReadByte();
+                    strengthLow = detectorPort.ReadByte();
                     byteNumber++;
                 }
                 if (byteNumber == 5)
                 {
-                    strengthHigh = port.ReadByte();
+                    strengthHigh = detectorPort.ReadByte();
                     byteNumber++;
                 }
                 if (byteNumber == 6)
                 {
-                    port.ReadByte();
+                    detectorPort.ReadByte();
                     byteNumber++;
                 }
                 if (byteNumber == 7)
                 {
-                    quality = port.ReadByte();
+                    quality = detectorPort.ReadByte();
                     byteNumber++;
                 }
                 if (byteNumber == 8)
                 {
-                    port.ReadByte();
+                    detectorPort.ReadByte(); //Checksum
                     byteNumber = 0;
-                    Console.WriteLine("{0} {1} {2} {3}", distanceLow + distanceHigh * 256, strengthLow + strengthHigh * 256, quality, arduinoPort.BytesToWrite);
                     int distance = distanceLow + distanceHigh * 256;
-                    if (distance < 40)
-                        arduinoPort.BaseStream.WriteByte(1);
-                    else if(distance < 50)
-                        arduinoPort.BaseStream.WriteByte(2);
-                }
-            }
-            return;
-                // Show all the incoming data in the port's buffer
-                var existing = port.ReadExisting();
-
-            //Console.WriteLine("{0} {1}", existing, existing.Length);
-            if (existing.Length > 5)
-            {
-
-                int a = existing[0];
-                int b = existing[1];
-                int c = existing[2];
-                int d = existing[3];
-                Console.WriteLine("{0} {1} {2} {3}", a, b, c, d);
-            }
-            //using (BinaryReader br = new BinaryReader(port.BaseStream))
-            if (false)
-            {
-                //while (true)
-                {
-                    if (port.BytesToRead > 16)
-                    {
-                        while (br.ReadByte() != 89 && br.ReadByte() != 89)
-                        {
-
-                        }
-                        //var header1 = br.ReadByte();
-                        //var header2 = br.ReadByte();
-                        var height1 = br.ReadByte();
-                        var height2 = br.ReadByte();
-                        Console.WriteLine("{0}", (height1 + height2 * 256) / 1000);
-                        //br.ReadBytes(5);
-                    }
-                    System.Threading.Thread.Sleep(1000);
-                    port.ReadExisting();
+                    int strength = strengthLow + strengthHigh * 256;
+                    Console.WriteLine("{0} {1} {2} {3}", distance, strength, quality, arduinoPort.BytesToWrite);
+                    CheckMeasuredDistance(distance);
                 }
             }
         }
 
+        private void CheckMeasuredDistance(int distance)
+        {
+            if (detectorMode == DetectorMode.Waiting)
+            {
+                if (distance < DetectedDistance)
+                {
+                    detectorMode = DetectorMode.Detecting;
+                    detectionTime = DateTime.Now;
+                    lowestDistance = distance;
+                }
+            }
+            else if (detectorMode == DetectorMode.Detecting)
+            {
+                if (distance < DetectedDistance)
+                {
+                    lowestDistance = distance;
+                }
+                TimeSpan dt = DateTime.Now - detectionTime;
+                if (dt.TotalMilliseconds > 1000)
+                {
+                    if (lowestDistance >= DistanceGrantLow && lowestDistance <= DistanceGrantHigh)
+                    {
+                        arduinoPort.BaseStream.WriteByte(1);
+                    }
+                    else
+                    {
+                        arduinoPort.BaseStream.WriteByte(2);
+
+                    }
+                }
+            }
+            else
+            {
+                TimeSpan dt = DateTime.Now - detectionTime;
+                if (dt.TotalMilliseconds > 4000)
+                {
+                    detectorMode = DetectorMode.Waiting;
+                }
+
+            }
+        }
+
+
         private void button2_Click(object sender, EventArgs e)
         {
             SoundPlayer simpleSound = new SoundPlayer(@"c:\Windows\Media\chimes.wav");
+            //SoundPlayer simpleSound = new SoundPlayer(@"c:\prog\FunMain\Audio\AccessGranted.mp3");
             simpleSound.Play();
 
+            SoundControls soundControls = new SoundControls();
+            //soundControls.PlaySound();
         }
     }
 
