@@ -121,7 +121,7 @@ namespace FunMain
                     byteNumber = 0;
                     int distance = distanceLow + distanceHigh * 256;
                     int strength = strengthLow + strengthHigh * 256;
-                    Console.WriteLine("{0} {1} {2} {3}", distance, strength, quality, arduinoPort.BytesToWrite);
+                    //Console.WriteLine("{0} {1} {2} {3}", distance, strength, quality, arduinoPort.BytesToWrite);
                     CheckMeasuredDistance(distance);
                 }
             }
@@ -140,10 +140,11 @@ namespace FunMain
             }
             else if (detectorMode == DetectorMode.Detecting)
             {
-                if (distance < DetectedDistance)
+                if (distance < lowestDistance)
                 {
                     lowestDistance = distance;
                 }
+                Console.WriteLine("{0} {1}", distance, lowestDistance);
                 TimeSpan dt = DateTime.Now - detectionTime;
                 if (dt.TotalMilliseconds > 1000)
                 {
@@ -155,6 +156,7 @@ namespace FunMain
                     {
                         arduinoPort.BaseStream.WriteByte(2);
                     }
+                    Console.WriteLine("-----");
                     detectorMode = DetectorMode.Pause;
                 }
             }
@@ -163,6 +165,7 @@ namespace FunMain
                 TimeSpan dt = DateTime.Now - detectionTime;
                 if (dt.TotalMilliseconds > 4000)
                 {
+                    arduinoPort.BaseStream.WriteByte(0);
                     detectorMode = DetectorMode.Waiting;
                 }
 
