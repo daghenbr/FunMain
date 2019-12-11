@@ -22,7 +22,8 @@ namespace FunMain
         // Create the serial port with basic settings
         private SerialPort detectorPort = new SerialPort("COM8", 115200, Parity.None, 8, StopBits.One);
         private SerialPort arduinoPort = new SerialPort("COM10",   9600, Parity.None, 8, StopBits.One);
-        private Random random = new Random();
+        //private Random random = new Random();
+        SoundControls soundControls = new SoundControls();
 
         enum DetectorMode
         {
@@ -136,6 +137,7 @@ namespace FunMain
                     detectorMode = DetectorMode.Detecting;
                     detectionTime = DateTime.Now;
                     lowestDistance = distance;
+                    arduinoPort.BaseStream.WriteByte(3);
                 }
             }
             else if (detectorMode == DetectorMode.Detecting)
@@ -151,10 +153,12 @@ namespace FunMain
                     if (lowestDistance >= DistanceGrantLow && lowestDistance <= DistanceGrantHigh)
                     {
                         arduinoPort.BaseStream.WriteByte(1);
+                        soundControls.PlayGranted();
                     }
                     else
                     {
                         arduinoPort.BaseStream.WriteByte(2);
+                        soundControls.PlayDenied();
                     }
                     Console.WriteLine("-----");
                     detectorMode = DetectorMode.Pause;
@@ -175,12 +179,12 @@ namespace FunMain
 
         private void button2_Click(object sender, EventArgs e)
         {
-            SoundPlayer simpleSound = new SoundPlayer(@"c:\Windows\Media\chimes.wav");
+            //SoundPlayer simpleSound = new SoundPlayer(@"c:\Windows\Media\chimes.wav");
             //SoundPlayer simpleSound = new SoundPlayer(@"c:\prog\FunMain\Audio\AccessGranted.mp3");
-            simpleSound.Play();
+            //simpleSound.Play();
 
             SoundControls soundControls = new SoundControls();
-            //soundControls.PlaySound();
+            soundControls.PlayAccessGranted();
         }
     }
 

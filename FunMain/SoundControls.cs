@@ -13,33 +13,61 @@ namespace FunMain
     public class SoundControls
     {
         public void PlaySound()
-
         {
-
             var path = Directory.GetCurrentDirectory();
-
-            //var file = Path.Combine(path, "AccessDenied.mp3");
-            var file = @"c:\Windows\Media\chimes.wav";
+            var file = Path.Combine(path, "AccessDenied.mp3");
             using (var audioFile = new AudioFileReader(file))
-
             using (var outputDevice = new WaveOutEvent())
-
             {
-
                 outputDevice.Init(audioFile);
-
                 outputDevice.Play();
-
                 while (outputDevice.PlaybackState == PlaybackState.Playing)
-
                 {
-
                     Thread.Sleep(1000);
-
                 }
-
             }
+        }
 
+
+        public void PlayGranted()
+        {
+            Task.Run(PlayAccessGranted);
+        }
+        public void PlayDenied()
+        {
+            Task.Run(PlayAccessDenied);
+        }
+
+        public void PlayAccessGranted()
+        {
+            var path = Directory.GetCurrentDirectory();
+            var file = Path.Combine(path, "AccessGranted.mp3");
+            using (var audioFile = new AudioFileReader(file))
+            using (var outputDevice = new WaveOutEvent())
+            {
+                outputDevice.Init(audioFile);
+                outputDevice.Play();
+                while (outputDevice.PlaybackState == PlaybackState.Playing)
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+        }
+
+        public void PlayAccessDenied()
+        {
+            var path = Directory.GetCurrentDirectory();
+            var file = Path.Combine(path, "AccessDenied.mp3");
+            using (var audioFile = new AudioFileReader(file))
+            using (var outputDevice = new WaveOutEvent())
+            {
+                outputDevice.Init(audioFile);
+                outputDevice.Play();
+                while (outputDevice.PlaybackState == PlaybackState.Playing)
+                {
+                    Thread.Sleep(1000);
+                }
+            }
         }
     }
 }
