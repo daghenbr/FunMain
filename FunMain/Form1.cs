@@ -15,9 +15,12 @@ namespace FunMain
 {
     public partial class Form1 : Form
     {
-        const int DetectedDistance = 130;
-        const int DistanceGrantLow = 40;
-        const int DistanceGrantHigh = 50;
+        const int DetectedDistance = 130; //Start measuring when distance is less than this
+        const int DistanceGrantLow = 64;  //Lowest accepted distance
+        const int DistanceGrantHigh = 79; //Highest accepted distance
+
+        int distanceGrantLow = DistanceGrantLow;
+        int distanceGrantHigh = DistanceGrantHigh;
 
         // Create the serial port with basic settings
         private SerialPort detectorPort = new SerialPort("COM8", 115200, Parity.None, 8, StopBits.One);
@@ -50,10 +53,15 @@ namespace FunMain
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            Console.WriteLine("Incoming Data:");
 
+        /// <summary>
+        /// Start communication with optical sensor and Arduino.
+        /// This method is called from the form load event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void StartCommunication()
+        {
             // Attach a method to be called when there
             // is data waiting in the port's buffer
             detectorPort.DataReceived += new SerialDataReceivedEventHandler(port_DataReceived);
@@ -62,8 +70,6 @@ namespace FunMain
             int wbs = arduinoPort.WriteBufferSize;
             arduinoPort.Open();
             detectorPort.Open();
-            //br = new BinaryReader(port.BaseStream);
-
         }
 
 
@@ -146,11 +152,13 @@ namespace FunMain
                 {
                     lowestDistance = distance;
                 }
-                Console.WriteLine("{0} {1}", distance, lowestDistance);
                 TimeSpan dt = DateTime.Now - detectionTime;
                 if (dt.TotalMilliseconds > 1000)
                 {
-                    if (lowestDistance >= DistanceGrantLow && lowestDistance <= DistanceGrantHigh)
+                    //Console.WriteLine("{0}", lowestDistance);
+                    Action<string> AddLine = AddToListBox;
+                    listBox1.Invoke(AddLine, new object[] { lowestDistance.ToString() });
+                    if (lowestDistance >= distanceGrantLow && lowestDistance <= distanceGrantHigh)
                     {
                         arduinoPort.BaseStream.WriteByte(1);
                         soundControls.PlayGranted();
@@ -160,7 +168,7 @@ namespace FunMain
                         arduinoPort.BaseStream.WriteByte(2);
                         soundControls.PlayDenied();
                     }
-                    Console.WriteLine("-----");
+                    //Console.WriteLine("-----");
                     detectorMode = DetectorMode.Pause;
                 }
             }
@@ -177,15 +185,42 @@ namespace FunMain
         }
 
 
+        /// <summary>
+        /// Not in use now.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
-            //SoundPlayer simpleSound = new SoundPlayer(@"c:\Windows\Media\chimes.wav");
-            //SoundPlayer simpleSound = new SoundPlayer(@"c:\prog\FunMain\Audio\AccessGranted.mp3");
-            //simpleSound.Play();
-
             SoundControls soundControls = new SoundControls();
             soundControls.PlayAccessGranted();
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            numericUpDownLow.Value = DistanceGrantLow;
+            numericUpDownHigh.Value = DistanceGrantHigh;
+            timer1.Start();
+            StartCommunication();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            distanceGrantLow = (int)numericUpDownLow.Value;
+            distanceGrantHigh = (int)numericUpDownHigh.Value;
+        }
+
+
+        /// <summary>
+        /// Add a line to the ListBox, in a thread-safe manner, through Invoke.
+        /// </summary>
+        /// <param name="str"></param>
+        private void AddToListBox(string str)
+        {
+            listBox1.Items.Add(str);
+            listBox1.TopIndex = listBox1.Items.Count - 1; //Scroll to bottom
+        }
+
     }
 
 }
