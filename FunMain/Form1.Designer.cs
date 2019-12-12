@@ -42,6 +42,7 @@
             // 
             // numericUpDownLow
             // 
+            this.numericUpDownLow.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.numericUpDownLow.Location = new System.Drawing.Point(12, 25);
             this.numericUpDownLow.Maximum = new decimal(new int[] {
             500,
@@ -49,11 +50,13 @@
             0,
             0});
             this.numericUpDownLow.Name = "numericUpDownLow";
-            this.numericUpDownLow.Size = new System.Drawing.Size(78, 20);
+            this.numericUpDownLow.Size = new System.Drawing.Size(90, 26);
             this.numericUpDownLow.TabIndex = 2;
+            this.numericUpDownLow.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // numericUpDownHigh
             // 
+            this.numericUpDownHigh.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.numericUpDownHigh.Location = new System.Drawing.Point(12, 79);
             this.numericUpDownHigh.Maximum = new decimal(new int[] {
             500,
@@ -61,15 +64,18 @@
             0,
             0});
             this.numericUpDownHigh.Name = "numericUpDownHigh";
-            this.numericUpDownHigh.Size = new System.Drawing.Size(78, 20);
+            this.numericUpDownHigh.Size = new System.Drawing.Size(90, 26);
             this.numericUpDownHigh.TabIndex = 3;
+            this.numericUpDownHigh.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // listBox1
             // 
+            this.listBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listBox1.FormattingEnabled = true;
+            this.listBox1.ItemHeight = 24;
             this.listBox1.Location = new System.Drawing.Point(12, 130);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(90, 238);
+            this.listBox1.Size = new System.Drawing.Size(90, 292);
             this.listBox1.TabIndex = 4;
             // 
             // timer1
@@ -108,7 +114,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(120, 379);
+            this.ClientSize = new System.Drawing.Size(123, 452);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
